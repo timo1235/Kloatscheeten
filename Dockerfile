@@ -27,10 +27,10 @@ COPY shared/ shared/
 COPY server/ server/
 COPY --from=frontend-build /app/frontend/dist server/frontend/dist
 
-ENV PORT=11000
-EXPOSE 11000
+ENV PORT=12000
+EXPOSE 12000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -qO- http://localhost:11000/api/health || exit 1
+  CMD wget -qO- http://localhost:12000/api/health || exit 1
 
 CMD ["node", "--experimental-strip-types", "server/index.ts"]

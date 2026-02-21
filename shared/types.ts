@@ -12,6 +12,7 @@ export interface GameState {
   id: string
   teamA: TeamState
   teamB: TeamState
+  lastThrowTeam: Team | null
   status: GameStatus
   winner: Team | null
   createdAt: number
@@ -33,4 +34,8 @@ export interface CreateGameResponse {
 
 export function getCurrentThrower(team: TeamState): string {
   return team.players[team.currentThrowerIndex % team.players.length]
+}
+
+export function getLastThrowerIndex(team: TeamState): number {
+  return (team.currentThrowerIndex - 1 + team.players.length) % team.players.length
 }

@@ -11,9 +11,9 @@ import type {
   SocketData,
 } from '@cloatscheeten/shared/events.ts'
 import type { CreateGameRequest, CreateGameResponse, Team } from '@cloatscheeten/shared/types.ts'
-import { createGame, getGame, validateAdminToken, recordThrow, undoThrow, endGame } from './db.ts'
+import { createGame, getGame, validateAdminToken, recordThrow, undoThrow, endGame, addPlayer, removePlayer, reorderPlayers, setCurrentThrower } from './db.ts'
 
-const PORT = parseInt(process.env.PORT ?? '11000', 10)
+const PORT = parseInt(process.env.PORT ?? '12000', 10)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = join(__dirname, 'frontend', 'dist')
 
@@ -192,6 +192,97 @@ io.on('connection', (socket) => {
 
     const updated = endGame(gameId)
     if (updated) io.to(gameId).emit('game:updated', updated)
+  })
+
+  socket.on('game:addPlayer', ({ gameId, team, name }) => {
+    if (!socket.data.isAdmin || socket.data.adminGameId !== gameId) {
+      socket.emit('game:error', { code: 'INVALID_TOKEN', message: 'Keine Admin-Berechtigung' })
+      return
+    }
+    if (team !== 'a' && team !== 'b') return
+    if (!name || typeof name !== 'string' || !name.trim() || name.length > 50) {
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltiger Spielername' })
+      return
+    }
+
+    const game = getGame(gameId)
+    if (!game || game.status === 'ended') {
+      socket.emit('game:error', { code: 'GAME_ALREADY_ENDED', message: 'Spiel ist beendet' })
+      return
+    }
+
+    const updated = addPlayer(gameId, team, name.trim())
+    if (updated) {
+      io.to(gameId).emit('game:updated', updated)
+    } else {
+      socket.emit('game:error', { code: 'TOO_MANY_PLAYERS', message: 'Maximal 8 Spieler pro Team' })
+    }
+  })
+
+  socket.on('game:removePlayer', ({ gameId, team, index }) => {
+    if (!socket.data.isAdmin || socket.data.adminGameId !== gameId) {
+      socket.emit('game:error', { code: 'INVALID_TOKEN', message: 'Keine Admin-Berechtigung' })
+      return
+    }
+    if (team !== 'a' && team !== 'b') return
+    if (typeof index !== 'number') return
+
+    const game = getGame(gameId)
+    if (!game || game.status === 'ended') {
+      socket.emit('game:error', { code: 'GAME_ALREADY_ENDED', message: 'Spiel ist beendet' })
+      return
+    }
+
+    const updated = removePlayer(gameId, team, index)
+    if (updated) {
+      io.to(gameId).emit('game:updated', updated)
+    } else {
+      socket.emit('game:error', { code: 'TOO_FEW_PLAYERS', message: 'Mindestens 2 Spieler pro Team' })
+    }
+  })
+
+  socket.on('game:reorderPlayers', ({ gameId, team, newOrder }) => {
+    if (!socket.data.isAdmin || socket.data.adminGameId !== gameId) {
+      socket.emit('game:error', { code: 'INVALID_TOKEN', message: 'Keine Admin-Berechtigung' })
+      return
+    }
+    if (team !== 'a' && team !== 'b') return
+    if (!Array.isArray(newOrder)) return
+
+    const game = getGame(gameId)
+    if (!game || game.status === 'ended') {
+      socket.emit('game:error', { code: 'GAME_ALREADY_ENDED', message: 'Spiel ist beendet' })
+      return
+    }
+
+    const updated = reorderPlayers(gameId, team, newOrder)
+    if (updated) {
+      io.to(gameId).emit('game:updated', updated)
+    } else {
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltige Spielerliste' })
+    }
+  })
+
+  socket.on('game:setThrower', ({ gameId, team, index }) => {
+    if (!socket.data.isAdmin || socket.data.adminGameId !== gameId) {
+      socket.emit('game:error', { code: 'INVALID_TOKEN', message: 'Keine Admin-Berechtigung' })
+      return
+    }
+    if (team !== 'a' && team !== 'b') return
+    if (typeof index !== 'number') return
+
+    const game = getGame(gameId)
+    if (!game || game.status === 'ended') {
+      socket.emit('game:error', { code: 'GAME_ALREADY_ENDED', message: 'Spiel ist beendet' })
+      return
+    }
+
+    const updated = setCurrentThrower(gameId, team, index)
+    if (updated) {
+      io.to(gameId).emit('game:updated', updated)
+    } else {
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltiger Spieler-Index' })
+    }
   })
 
   socket.on('game:leave', ({ gameId }) => {

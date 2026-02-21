@@ -64,17 +64,17 @@ const stmtGetGame = db.prepare<GameRow, [string]>(
 
 const stmtRecordThrow = db.prepare(`
   UPDATE games SET
-    team_a_throws = team_a_throws + CASE WHEN ?2 = 'a' THEN 1 ELSE 0 END,
-    team_b_throws = team_b_throws + CASE WHEN ?2 = 'b' THEN 1 ELSE 0 END,
-    team_a_current_thrower = CASE WHEN ?2 = 'a'
+    team_a_throws = team_a_throws + CASE WHEN @team = 'a' THEN 1 ELSE 0 END,
+    team_b_throws = team_b_throws + CASE WHEN @team = 'b' THEN 1 ELSE 0 END,
+    team_a_current_thrower = CASE WHEN @team = 'a'
       THEN (team_a_current_thrower + 1) % json_array_length(team_a_players)
       ELSE team_a_current_thrower END,
-    team_b_current_thrower = CASE WHEN ?2 = 'b'
+    team_b_current_thrower = CASE WHEN @team = 'b'
       THEN (team_b_current_thrower + 1) % json_array_length(team_b_players)
       ELSE team_b_current_thrower END,
-    last_throw_team = ?2,
+    last_throw_team = @team,
     updated_at = unixepoch()
-  WHERE id = ?1
+  WHERE id = @id
 `)
 
 const stmtUndoThrow = db.prepare(`
@@ -89,7 +89,7 @@ const stmtUndoThrow = db.prepare(`
       ELSE team_b_current_thrower END,
     last_throw_team = NULL,
     updated_at = unixepoch()
-  WHERE id = ?1 AND last_throw_team IS NOT NULL
+  WHERE id = @id AND last_throw_team IS NOT NULL
 `)
 
 const stmtEndGame = db.prepare(`
@@ -101,7 +101,7 @@ const stmtEndGame = db.prepare(`
       ELSE NULL
     END,
     updated_at = unixepoch()
-  WHERE id = ?1 AND status = 'active'
+  WHERE id = @id AND status = 'active'
 `)
 
 function rowToGameState(row: GameRow): GameState {
@@ -109,6 +109,7 @@ function rowToGameState(row: GameRow): GameState {
     id: row.id,
     status: row.status as GameState['status'],
     winner: row.winner as GameState['winner'],
+    lastThrowTeam: row.last_throw_team as GameState['lastThrowTeam'],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     teamA: {
@@ -149,18 +150,133 @@ export function validateAdminToken(gameId: string, token: string): boolean {
 }
 
 export function recordThrow(gameId: string, team: Team): GameState | null {
-  stmtRecordThrow.run(gameId, team)
+  stmtRecordThrow.run({ id: gameId, team })
   return getGame(gameId)
 }
 
 export function undoThrow(gameId: string): GameState | null {
   const game = stmtGetGame.get(gameId)
   if (!game || !game.last_throw_team) return null
-  stmtUndoThrow.run(gameId)
+  stmtUndoThrow.run({ id: gameId })
   return getGame(gameId)
 }
 
 export function endGame(gameId: string): GameState | null {
-  stmtEndGame.run(gameId)
+  stmtEndGame.run({ id: gameId })
+  return getGame(gameId)
+}
+
+const stmtAddPlayerA = db.prepare(`
+  UPDATE games SET
+    team_a_players = json_insert(team_a_players, '$[#]', @name),
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id AND json_array_length(team_a_players) < 8
+`)
+
+const stmtAddPlayerB = db.prepare(`
+  UPDATE games SET
+    team_b_players = json_insert(team_b_players, '$[#]', @name),
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id AND json_array_length(team_b_players) < 8
+`)
+
+export function addPlayer(gameId: string, team: Team, name: string): GameState | null {
+  const stmt = team === 'a' ? stmtAddPlayerA : stmtAddPlayerB
+  const result = stmt.run({ id: gameId, name })
+  if (result.changes === 0) return null
+  return getGame(gameId)
+}
+
+export function removePlayer(gameId: string, team: Team, index: number): GameState | null {
+  const row = stmtGetGame.get(gameId)
+  if (!row) return null
+
+  const players: string[] = JSON.parse(team === 'a' ? row.team_a_players : row.team_b_players)
+  if (players.length <= 2 || index < 0 || index >= players.length) return null
+
+  const currentIndex = team === 'a' ? row.team_a_current_thrower : row.team_b_current_thrower
+  players.splice(index, 1)
+
+  // Adjust thrower index
+  let newIndex = currentIndex
+  if (index < currentIndex) {
+    newIndex = currentIndex - 1
+  } else if (index === currentIndex) {
+    newIndex = currentIndex % players.length
+  }
+  if (newIndex >= players.length) newIndex = 0
+
+  const stmt = team === 'a' ? stmtReorderPlayersA : stmtReorderPlayersB
+  stmt.run({ id: gameId, players: JSON.stringify(players), throwerIndex: newIndex })
+  return getGame(gameId)
+}
+
+const stmtReorderPlayersA = db.prepare(`
+  UPDATE games SET
+    team_a_players = @players,
+    team_a_current_thrower = @throwerIndex,
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id
+`)
+
+const stmtReorderPlayersB = db.prepare(`
+  UPDATE games SET
+    team_b_players = @players,
+    team_b_current_thrower = @throwerIndex,
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id
+`)
+
+export function reorderPlayers(gameId: string, team: Team, newOrder: string[]): GameState | null {
+  const row = stmtGetGame.get(gameId)
+  if (!row) return null
+
+  const currentPlayers: string[] = JSON.parse(team === 'a' ? row.team_a_players : row.team_b_players)
+  const currentIndex = team === 'a' ? row.team_a_current_thrower : row.team_b_current_thrower
+
+  // Validate same players
+  if (newOrder.length !== currentPlayers.length) return null
+  const sorted1 = [...currentPlayers].sort()
+  const sorted2 = [...newOrder].sort()
+  if (sorted1.some((v, i) => v !== sorted2[i])) return null
+
+  // Track current thrower by name
+  const currentThrowerName = currentPlayers[currentIndex % currentPlayers.length]
+  const newIndex = newOrder.indexOf(currentThrowerName)
+
+  const stmt = team === 'a' ? stmtReorderPlayersA : stmtReorderPlayersB
+  stmt.run({ id: gameId, players: JSON.stringify(newOrder), throwerIndex: newIndex >= 0 ? newIndex : 0 })
+  return getGame(gameId)
+}
+
+const stmtSetThrowerA = db.prepare(`
+  UPDATE games SET
+    team_a_current_thrower = @index,
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id
+`)
+
+const stmtSetThrowerB = db.prepare(`
+  UPDATE games SET
+    team_b_current_thrower = @index,
+    last_throw_team = NULL,
+    updated_at = unixepoch()
+  WHERE id = @id
+`)
+
+export function setCurrentThrower(gameId: string, team: Team, index: number): GameState | null {
+  const row = stmtGetGame.get(gameId)
+  if (!row) return null
+
+  const players: string[] = JSON.parse(team === 'a' ? row.team_a_players : row.team_b_players)
+  if (index < 0 || index >= players.length) return null
+
+  const stmt = team === 'a' ? stmtSetThrowerA : stmtSetThrowerB
+  stmt.run({ id: gameId, index })
   return getGame(gameId)
 }

@@ -120,8 +120,8 @@ function doEnd() {
 }
 
 .confirm-end {
-  background: rgba(229, 57, 53, 0.1);
-  border: 1px solid rgba(229, 57, 53, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius);
   padding: 1rem;
   text-align: center;

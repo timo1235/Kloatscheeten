@@ -15,7 +15,7 @@ defineProps<{
 <style scoped>
 .banner {
   background: var(--color-warning);
-  color: #1a1a1a;
+  color: #0f1115;
   text-align: center;
   padding: 0.5rem;
   font-size: 0.85rem;

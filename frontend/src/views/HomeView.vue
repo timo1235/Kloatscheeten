@@ -250,11 +250,11 @@ async function copyLink() {
 }
 
 .error {
-  background: rgba(229, 57, 53, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   color: var(--color-danger);
   padding: 0.75rem 1rem;
   border-radius: var(--radius);
-  border: 1px solid rgba(229, 57, 53, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .created {

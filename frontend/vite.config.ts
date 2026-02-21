@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Kloatscheeten',
         short_name: 'Kloatscheeten',
         description: 'Kloatscheeten Wurf-Tracker',
-        theme_color: '#1a472a',
-        background_color: '#0f1a0f',
+        theme_color: '#1a1d23',
+        background_color: '#0f1115',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -58,9 +58,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:11000',
+      '/api': 'http://localhost:12000',
       '/socket.io': {
-        target: 'http://localhost:11000',
+        target: 'http://localhost:12000',
         ws: true,
       },
     },

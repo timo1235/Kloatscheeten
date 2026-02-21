@@ -15,6 +15,10 @@ interface UseGameRoomReturn {
   throwForTeam: (team: Team) => void
   undoLastThrow: () => void
   endGame: () => void
+  addPlayer: (team: Team, name: string) => void
+  removePlayer: (team: Team, index: number) => void
+  reorderPlayers: (team: Team, newOrder: string[]) => void
+  setThrower: (team: Team, index: number) => void
 }
 
 export function useGameRoom(gameId: string): UseGameRoomReturn {
@@ -83,6 +87,26 @@ export function useGameRoom(gameId: string): UseGameRoomReturn {
     socket.emit('game:end', { gameId })
   }
 
+  function addPlayer(team: Team, name: string) {
+    if (!isAdmin.value) return
+    socket.emit('game:addPlayer', { gameId, team, name })
+  }
+
+  function removePlayer(team: Team, index: number) {
+    if (!isAdmin.value) return
+    socket.emit('game:removePlayer', { gameId, team, index })
+  }
+
+  function reorderPlayers(team: Team, newOrder: string[]) {
+    if (!isAdmin.value) return
+    socket.emit('game:reorderPlayers', { gameId, team, newOrder })
+  }
+
+  function setThrower(team: Team, index: number) {
+    if (!isAdmin.value) return
+    socket.emit('game:setThrower', { gameId, team, index })
+  }
+
   onMounted(() => {
     socket.on('game:updated', handleUpdated)
     socket.on('game:error', handleError)
@@ -112,5 +136,9 @@ export function useGameRoom(gameId: string): UseGameRoomReturn {
     throwForTeam,
     undoLastThrow,
     endGame,
+    addPlayer,
+    removePlayer,
+    reorderPlayers,
+    setThrower,
   }
 }

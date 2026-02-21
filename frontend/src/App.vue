@@ -15,22 +15,22 @@
 }
 
 :root {
-  --color-bg: #0f1a0f;
-  --color-surface: #1a2e1a;
-  --color-surface-light: #243824;
-  --color-primary: #4caf50;
-  --color-primary-hover: #66bb6a;
-  --color-danger: #e53935;
-  --color-danger-hover: #ef5350;
-  --color-warning: #ff9800;
-  --color-text: #e8f5e9;
-  --color-text-muted: #a5d6a7;
-  --color-border: #2e5a2e;
-  --radius: 12px;
+  --color-bg: #0f1115;
+  --color-surface: #1a1d23;
+  --color-surface-light: #252830;
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
+  --color-warning: #f59e0b;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-border: #2d3140;
+  --radius: 10px;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100dvh;

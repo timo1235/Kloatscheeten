@@ -18,22 +18,48 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = join(__dirname, 'frontend', 'dist')
 
 // --- Rate limiting ---
-const throwTimestamps = new Map<string, number[]>()
-const MAX_THROWS_PER_SEC = 10
+function createRateLimiter(maxHits: number, windowMs: number) {
+  const hits = new Map<string, number[]>()
 
-function isRateLimited(socketId: string): boolean {
-  const now = Date.now()
-  const timestamps = throwTimestamps.get(socketId) ?? []
-  const recent = timestamps.filter((t) => now - t < 1000)
-  if (recent.length >= MAX_THROWS_PER_SEC) return true
-  recent.push(now)
-  throwTimestamps.set(socketId, recent)
-  return false
+  // Cleanup stale entries every 60s
+  setInterval(() => {
+    const cutoff = Date.now() - windowMs
+    for (const [key, timestamps] of hits) {
+      const valid = timestamps.filter((t) => t > cutoff)
+      if (valid.length === 0) hits.delete(key)
+      else hits.set(key, valid)
+    }
+  }, 60_000).unref()
+
+  return {
+    isLimited(key: string): boolean {
+      const now = Date.now()
+      const cutoff = now - windowMs
+      const timestamps = (hits.get(key) ?? []).filter((t) => t > cutoff)
+      if (timestamps.length >= maxHits) return true
+      timestamps.push(now)
+      hits.set(key, timestamps)
+      return false
+    },
+    remove(key: string) {
+      hits.delete(key)
+    },
+  }
+}
+
+const throwLimiter = createRateLimiter(10, 1_000)       // 10 throws/sec per IP
+const gameCreateLimiter = createRateLimiter(5, 60_000)  // 5 games/min per IP
+const joinLimiter = createRateLimiter(20, 60_000)       // 20 joins/min per IP
+
+function getSocketIp(socket: any): string {
+  return socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || socket.handshake.address
+    || 'unknown'
 }
 
 // --- Express app ---
 const app = express()
-app.use(express.json())
+app.use(express.json({ limit: '16kb' }))
 
 // Health
 app.get('/api/health', (_req, res) => {
@@ -44,6 +70,12 @@ app.get('/api/health', (_req, res) => {
 const ALLOWED_COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#e2e8f0']
 
 app.post('/api/games', (req, res) => {
+  const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown'
+  if (gameCreateLimiter.isLimited(ip)) {
+    res.status(429).json({ errors: ['Zu viele Spiele erstellt. Bitte warte eine Minute.'] })
+    return
+  }
+
   const body = req.body as CreateGameRequest
 
   const errors: string[] = []
@@ -107,6 +139,7 @@ const httpServer = createServer(app)
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
   cors: { origin: false },
+  maxHttpBufferSize: 16_384,
   connectionStateRecovery: {
     maxDisconnectionDuration: 2 * 60 * 1000,
   },
@@ -126,6 +159,13 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   socket.on('game:join', ({ gameId }, callback) => {
     if (!gameId || typeof gameId !== 'string') {
+      callback(null)
+      return
+    }
+
+    const ip = getSocketIp(socket)
+    if (joinLimiter.isLimited(ip)) {
+      socket.emit('game:error', { code: 'RATE_LIMITED', message: 'Zu viele Anfragen. Bitte warte.' })
       callback(null)
       return
     }
@@ -156,7 +196,7 @@ io.on('connection', (socket) => {
       return
     }
     if (team !== 'a' && team !== 'b') return
-    if (isRateLimited(socket.id)) {
+    if (throwLimiter.isLimited(getSocketIp(socket))) {
       socket.emit('game:error', { code: 'RATE_LIMITED', message: 'Zu viele Würfe' })
       return
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import type { CreateGameRequest, CreateGameResponse } from '@cloatscheeten/shared/types'
 
@@ -17,7 +17,13 @@ const created = ref<CreateGameResponse | null>(null)
 
 function addPlayer(team: 'a' | 'b') {
   const list = team === 'a' ? teamAPlayers : teamBPlayers
-  if (list.value.length < 8) list.value.push('')
+  if (list.value.length < 8) {
+    list.value.push('')
+    nextTick(() => {
+      const inputs = document.querySelectorAll<HTMLInputElement>(`.team-section-${team} .player-row input`)
+      inputs[inputs.length - 1]?.focus()
+    })
+  }
 }
 
 function removePlayer(team: 'a' | 'b', index: number) {
@@ -115,44 +121,53 @@ async function copyLink() {
 
     <!-- Form -->
     <form v-else class="form" @submit.prevent="createGame">
-      <div v-if="error" class="error">{{ error }}</div>
+      <div class="form-scroll">
+        <div v-if="error" class="error">{{ error }}</div>
 
-      <div class="team-section" v-for="(team, key) in { a: { name: teamAName, players: teamAPlayers, label: 'Team A' }, b: { name: teamBName, players: teamBPlayers, label: 'Team B' } }" :key="key">
-        <h2>{{ team.label }}</h2>
-        <input
-          :value="key === 'a' ? teamAName : teamBName"
-          @input="key === 'a' ? (teamAName = ($event.target as HTMLInputElement).value) : (teamBName = ($event.target as HTMLInputElement).value)"
-          :placeholder="`${team.label} Name (z.B. Die Kloater)`"
-          maxlength="50"
-        />
+        <div
+          v-for="(team, key) in { a: { name: teamAName, players: teamAPlayers, label: 'Team A' }, b: { name: teamBName, players: teamBPlayers, label: 'Team B' } }"
+          :key="key"
+          class="team-section"
+          :class="`team-section-${key}`"
+        >
+          <h2>{{ team.label }}</h2>
+          <input
+            :value="key === 'a' ? teamAName : teamBName"
+            @input="key === 'a' ? (teamAName = ($event.target as HTMLInputElement).value) : (teamBName = ($event.target as HTMLInputElement).value)"
+            :placeholder="`${team.label} Name (z.B. Die Kloater)`"
+            maxlength="50"
+          />
 
-        <div class="players">
-          <div v-for="(_, i) in team.players" :key="i" class="player-row">
-            <input
-              :value="team.players[i]"
-              @input="team.players[i] = ($event.target as HTMLInputElement).value"
-              :placeholder="`Spieler ${i + 1}`"
-              maxlength="50"
-            />
+          <div class="players">
+            <div v-for="(_, i) in team.players" :key="i" class="player-row">
+              <input
+                :value="team.players[i]"
+                @input="team.players[i] = ($event.target as HTMLInputElement).value"
+                :placeholder="`Spieler ${i + 1}`"
+                maxlength="50"
+              />
+              <button
+                v-if="team.players.length > 2"
+                type="button"
+                class="btn-remove"
+                @click="removePlayer(key as 'a' | 'b', i)"
+              >x</button>
+            </div>
             <button
-              v-if="team.players.length > 2"
+              v-if="team.players.length < 8"
               type="button"
-              class="btn-remove"
-              @click="removePlayer(key as 'a' | 'b', i)"
-            >x</button>
+              class="btn-add"
+              @click="addPlayer(key as 'a' | 'b')"
+            >+ Spieler</button>
           </div>
-          <button
-            v-if="team.players.length < 8"
-            type="button"
-            class="btn-add"
-            @click="addPlayer(key as 'a' | 'b')"
-          >+ Spieler</button>
         </div>
       </div>
 
-      <button type="submit" class="btn-primary btn-large" :disabled="!isValid || submitting">
-        {{ submitting ? 'Erstelle...' : 'Spiel starten' }}
-      </button>
+      <div class="form-footer">
+        <button type="submit" class="btn-primary btn-large" :disabled="!isValid || submitting">
+          {{ submitting ? 'Erstelle...' : 'Spiel starten' }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -161,13 +176,16 @@ async function copyLink() {
 .home {
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem 0;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
 
 .header h1 {
@@ -183,7 +201,24 @@ async function copyLink() {
 .form {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.form-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.form-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 0;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--color-bg);
 }
 
 .team-section {
@@ -247,6 +282,7 @@ async function copyLink() {
 .btn-large {
   padding: 1rem;
   font-size: 1.1rem;
+  width: 100%;
 }
 
 .error {

@@ -11,12 +11,6 @@ Weniger Wuerfe = Gewinner.
 <p align="center">
   <img src="screenshots/home.png" width="230" alt="Spiel erstellen" />
   <img src="screenshots/tab-spiel.png" width="230" alt="Spiel-Tab (Admin)" />
-  <img src="screenshots/viewer.png" width="230" alt="Zuschauer-Ansicht" />
-</p>
-<p align="center">
-  <img src="screenshots/tab-spieler.png" width="230" alt="Spieler-Tab" />
-  <img src="screenshots/tab-teilen.png" width="230" alt="Teilen-Tab" />
-  <img src="screenshots/ergebnis.png" width="230" alt="Spielergebnis" />
 </p>
 
 ## Features

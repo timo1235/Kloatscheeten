@@ -29,7 +29,7 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
   <div class="score-card" :style="{ '--team-color': color } as any">
     <div class="team-name">{{ team.name }}</div>
     <div class="throws">{{ team.throws }}</div>
-    <div class="throws-label">Wuerfe</div>
+    <div class="throws-label">Würfe</div>
     <ul class="player-list">
       <li
         v-for="(player, i) in team.players"

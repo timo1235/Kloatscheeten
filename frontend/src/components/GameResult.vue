@@ -35,7 +35,7 @@ defineProps<{
       </div>
     </div>
 
-    <p class="fewer-wins">Weniger Wuerfe = Gewinner</p>
+    <p class="fewer-wins">Weniger Würfe = Gewinner</p>
   </div>
 </template>
 

@@ -112,7 +112,7 @@ async function copyLink() {
         <h2>Spiel erstellt!</h2>
 
         <div class="link-section">
-          <label>Link fuer Mitspieler:</label>
+          <label>Link für Mitspieler:</label>
           <div class="link-row">
             <input :value="created.viewerUrl" readonly @click="($event.target as HTMLInputElement).select()" />
             <button class="btn-copy" @click="copyLink">Kopieren</button>

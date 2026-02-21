@@ -91,7 +91,7 @@ function copyAdminLink() {
     <!-- Not found -->
     <div v-else-if="notFound" class="center-message">
       <h2>Spiel nicht gefunden</h2>
-      <p>Pruefe den Link oder erstelle ein neues Spiel.</p>
+      <p>Prüfe den Link oder erstelle ein neues Spiel.</p>
       <RouterLink to="/" class="btn-home">Neues Spiel</RouterLink>
     </div>
 
@@ -154,7 +154,7 @@ function copyAdminLink() {
             </button>
           </div>
 
-          <p v-if="!isAdmin" class="viewer-hint">Du schaust zu - nur der Admin kann Wuerfe zaehlen</p>
+          <p v-if="!isAdmin" class="viewer-hint">Du schaust zu - nur der Admin kann Würfe zählen</p>
         </div>
 
         <!-- Tab: Spieler -->
@@ -172,7 +172,7 @@ function copyAdminLink() {
         <template v-if="isAdmin && activeTab === 'teilen'">
           <div class="share-section">
             <h2 class="share-title">Link teilen</h2>
-            <p class="share-desc">Teile den Link, damit andere das Spiel live verfolgen koennen.</p>
+            <p class="share-desc">Teile den Link, damit andere das Spiel live verfolgen können.</p>
             <button class="btn-share-full" @click="copyViewerLink">Zuschauer-Link kopieren</button>
             <button class="btn-share-full btn-share-admin" @click="copyAdminLink">Admin-Link kopieren</button>
             <div v-if="shareMsg" class="share-msg">{{ shareMsg }}</div>
@@ -189,7 +189,7 @@ function copyAdminLink() {
               :disabled="pendingThrow || !canUndo()"
               @click="undoLastThrow"
             >
-              Letzten Wurf rueckgaengig machen
+              Letzten Wurf rückgängig machen
             </button>
 
             <div v-if="!showConfirmEnd">

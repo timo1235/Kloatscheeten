@@ -157,7 +157,7 @@ io.on('connection', (socket) => {
     }
     if (team !== 'a' && team !== 'b') return
     if (isRateLimited(socket.id)) {
-      socket.emit('game:error', { code: 'RATE_LIMITED', message: 'Zu viele Wuerfe' })
+      socket.emit('game:error', { code: 'RATE_LIMITED', message: 'Zu viele Würfe' })
       return
     }
 
@@ -187,7 +187,7 @@ io.on('connection', (socket) => {
     if (updated) {
       io.to(gameId).emit('game:updated', updated)
     } else {
-      socket.emit('game:error', { code: 'CANNOT_UNDO', message: 'Nichts zum Rueckgaengig-Machen' })
+      socket.emit('game:error', { code: 'CANNOT_UNDO', message: 'Nichts zum Rückgängig-Machen' })
     }
   })
 
@@ -208,7 +208,7 @@ io.on('connection', (socket) => {
     }
     if (team !== 'a' && team !== 'b') return
     if (!name || typeof name !== 'string' || !name.trim() || name.length > 50) {
-      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltiger Spielername' })
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungültiger Spielername' })
       return
     }
 
@@ -266,7 +266,7 @@ io.on('connection', (socket) => {
     if (updated) {
       io.to(gameId).emit('game:updated', updated)
     } else {
-      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltige Spielerliste' })
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungültige Spielerliste' })
     }
   })
 
@@ -288,7 +288,7 @@ io.on('connection', (socket) => {
     if (updated) {
       io.to(gameId).emit('game:updated', updated)
     } else {
-      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungueltiger Spieler-Index' })
+      socket.emit('game:error', { code: 'INVALID_PLAYER', message: 'Ungültiger Spieler-Index' })
     }
   })
 

@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3'
+import { timingSafeEqual } from 'crypto'
 import type { GameState, Team } from '@cloatscheeten/shared/types.ts'
 
 interface GameRow {
@@ -146,7 +147,11 @@ export function getGame(id: string): GameState | null {
 
 export function validateAdminToken(gameId: string, token: string): boolean {
   const row = stmtGetGame.get(gameId)
-  return row !== null && row.admin_token === token
+  if (!row) return false
+  const stored = Buffer.from(row.admin_token)
+  const provided = Buffer.from(token)
+  if (stored.length !== provided.length) return false
+  return timingSafeEqual(stored, provided)
 }
 
 export function recordThrow(gameId: string, team: Team): GameState | null {

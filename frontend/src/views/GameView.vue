@@ -11,12 +11,14 @@ import type { Team } from '@cloatscheeten/shared/types'
 
 const props = defineProps<{ id: string }>()
 
-// Consume admin token from URL query before useGameRoom reads localStorage
+// Consume admin token from URL fragment (not query) to avoid Referer leaks
 const route = useRoute()
 const router = useRouter()
-const adminQueryToken = route.query.admin as string | undefined
-if (adminQueryToken) {
-  localStorage.setItem(`adminToken:${props.id}`, adminQueryToken)
+const hashParams = new URLSearchParams(window.location.hash.slice(1))
+const adminHashToken = hashParams.get('admin')
+if (adminHashToken) {
+  localStorage.setItem(`adminToken:${props.id}`, adminHashToken)
+  window.location.hash = ''
   router.replace({ path: route.path })
 }
 
@@ -52,7 +54,7 @@ function copyViewerLink() {
 function copyAdminLink() {
   const token = localStorage.getItem(`adminToken:${props.id}`)
   if (!token) return
-  const url = `${location.origin}/game/${props.id}?admin=${token}`
+  const url = `${location.origin}/game/${props.id}#admin=${token}`
   navigator.clipboard.writeText(url).then(() => {
     shareMsg.value = 'Admin-Link kopiert! Nur an Vertrauenspersonen weitergeben.'
     setTimeout(() => shareMsg.value = '', 3000)

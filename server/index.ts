@@ -99,7 +99,7 @@ app.get('/{*path}', (_req, res) => {
 const httpServer = createServer(app)
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
-  cors: { origin: '*' },
+  cors: { origin: false },
   connectionStateRecovery: {
     maxDisconnectionDuration: 2 * 60 * 1000,
   },

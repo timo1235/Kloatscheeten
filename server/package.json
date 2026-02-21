@@ -1,0 +1,21 @@
+{
+  "name": "@cloatscheeten/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.ts",
+    "start": "node index.ts"
+  },
+  "dependencies": {
+    "@cloatscheeten/shared": "*",
+    "better-sqlite3": "^12.4.1",
+    "express": "^5.1.0",
+    "nanoid": "^5.0.9",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.0"
+  }
+}

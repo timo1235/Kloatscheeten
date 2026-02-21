@@ -1,0 +1,14 @@
+services:
+  kloatscheeten:
+    build: .
+    container_name: kloatscheeten
+    restart: unless-stopped
+    ports:
+      - "11000:11000"
+    volumes:
+      - data:/app/data
+    environment:
+      - PORT=11000
+
+volumes:
+  data:

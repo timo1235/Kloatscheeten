@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+*.db
+*.db-wal
+*.db-shm
+.env
+.vite/
+*.tsbuildinfo
+*.d.ts
+!src/**/*.d.ts
+frontend/vite.config.js

@@ -1,0 +1,5 @@
+{
+  "name": "cloatscheeten",
+  "private": true,
+  "workspaces": ["shared", "server", "frontend"]
+}

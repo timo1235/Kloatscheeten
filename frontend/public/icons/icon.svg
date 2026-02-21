@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1a472a"/>
+  <circle cx="256" cy="230" r="100" fill="#4caf50" opacity="0.9"/>
+  <ellipse cx="256" cy="230" rx="100" ry="30" fill="#388e3c"/>
+  <text x="256" y="420" text-anchor="middle" font-family="system-ui,sans-serif" font-size="120" font-weight="800" fill="#e8f5e9">K</text>
+</svg>

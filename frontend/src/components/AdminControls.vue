@@ -71,23 +71,23 @@ function doEnd() {
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 0;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  flex-shrink: 0;
 }
 
 .throw-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .btn-throw {
   background: var(--color-primary);
   color: white;
-  padding: 1.25rem 0.5rem;
+  padding: 0.9rem 0.5rem;
   font-size: 1rem;
   font-weight: 700;
-  min-height: 64px;
 }
 
 .btn-throw:hover:not(:disabled) {

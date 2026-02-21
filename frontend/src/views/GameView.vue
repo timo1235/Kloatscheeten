@@ -98,7 +98,7 @@ function copyAdminLink() {
         <div v-if="lastError" class="error-toast">{{ lastError.message }}</div>
 
         <!-- Tab: Spiel -->
-        <template v-if="!isAdmin || activeTab === 'spiel'">
+        <div v-if="!isAdmin || activeTab === 'spiel'" class="spiel-tab">
           <div class="scoreboards">
             <ScoreBoard
               :team="gameState.teamA"
@@ -124,7 +124,7 @@ function copyAdminLink() {
           />
 
           <p v-if="!isAdmin" class="viewer-hint">Du schaust zu - nur der Admin kann Wuerfe zaehlen</p>
-        </template>
+        </div>
 
         <!-- Tab: Spieler -->
         <template v-if="isAdmin && activeTab === 'spieler'">
@@ -182,22 +182,26 @@ function copyAdminLink() {
 
 <style scoped>
 .game {
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .game-content {
   max-width: 480px;
   margin: 0 auto;
-  padding: 1rem;
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  padding: 0.75rem 1rem 0;
   width: 100%;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .game-content.has-bottom-nav {
-  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0;
+  margin-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .game-header {
@@ -205,7 +209,8 @@ function copyAdminLink() {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .game-header h1 {
@@ -223,10 +228,20 @@ function copyAdminLink() {
   letter-spacing: 0.05em;
 }
 
+.spiel-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .scoreboards {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .error-toast {
@@ -244,7 +259,8 @@ function copyAdminLink() {
   text-align: center;
   color: var(--color-text-muted);
   font-size: 0.85rem;
-  margin-top: 1.5rem;
+  padding: 1rem 0;
+  flex-shrink: 0;
 }
 
 .center-message {
@@ -331,11 +347,11 @@ function copyAdminLink() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.6rem 0;
+  gap: 0.15rem;
+  padding: 0.5rem 0;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   border-radius: 0;
   transition: color 0.15s;

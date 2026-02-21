@@ -52,30 +52,30 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
 .score-card {
   background: var(--color-surface);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   text-align: center;
 }
 
 .team-name {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .throws {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 
 .throws-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.4rem;
 }
 
 .player-list {

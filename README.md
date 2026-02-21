@@ -4,6 +4,8 @@ Mobile-optimierte Progressive Web App zum Live-Tracking von Kloatscheeten-Spiele
 
 Weniger Wuerfe = Gewinner.
 
+**Live testen:** [kloatscheeten.altholtmann.com](https://kloatscheeten.altholtmann.com)
+
 ## Screenshots
 
 <p align="center">

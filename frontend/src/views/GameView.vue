@@ -4,10 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGameRoom } from '@/composables/useGameRoom'
 import ConnectionBanner from '@/components/ConnectionBanner.vue'
 import ScoreBoard from '@/components/ScoreBoard.vue'
-import AdminControls from '@/components/AdminControls.vue'
 import GameResult from '@/components/GameResult.vue'
 import PlayerManager from '@/components/PlayerManager.vue'
-import type { Team } from '@cloatscheeten/shared/types'
 
 const props = defineProps<{ id: string }>()
 
@@ -41,7 +39,21 @@ const {
 } = useGameRoom(props.id)
 
 const shareMsg = ref('')
-const activeTab = ref<'spiel' | 'spieler' | 'teilen'>('spiel')
+const activeTab = ref<'spiel' | 'spieler' | 'teilen' | 'mehr'>('spiel')
+const showConfirmEnd = ref(false)
+
+function confirmEnd() {
+  showConfirmEnd.value = true
+}
+
+function doEnd() {
+  showConfirmEnd.value = false
+  endGame()
+}
+
+const canUndo = () => gameState.value
+  ? gameState.value.teamA.throws > 0 || gameState.value.teamB.throws > 0
+  : false
 
 function copyViewerLink() {
   const url = `${location.origin}/game/${props.id}`
@@ -114,14 +126,22 @@ function copyAdminLink() {
             />
           </div>
 
-          <AdminControls
-            v-if="isAdmin"
-            :gameState="gameState"
-            :pending="pendingThrow"
-            @throw="(team: Team) => throwForTeam(team)"
-            @undo="undoLastThrow"
-            @end="endGame"
-          />
+          <div v-if="isAdmin" class="throw-buttons">
+            <button
+              class="btn-throw"
+              :disabled="pendingThrow"
+              @click="throwForTeam('a')"
+            >
+              Wurf {{ gameState.teamA.name }}
+            </button>
+            <button
+              class="btn-throw"
+              :disabled="pendingThrow"
+              @click="throwForTeam('b')"
+            >
+              Wurf {{ gameState.teamB.name }}
+            </button>
+          </div>
 
           <p v-if="!isAdmin" class="viewer-hint">Du schaust zu - nur der Admin kann Wuerfe zaehlen</p>
         </div>
@@ -145,6 +165,32 @@ function copyAdminLink() {
             <button class="btn-share-full" @click="copyViewerLink">Zuschauer-Link kopieren</button>
             <button class="btn-share-full btn-share-admin" @click="copyAdminLink">Admin-Link kopieren</button>
             <div v-if="shareMsg" class="share-msg">{{ shareMsg }}</div>
+          </div>
+        </template>
+
+        <!-- Tab: Mehr -->
+        <template v-if="isAdmin && activeTab === 'mehr'">
+          <div class="mehr-section">
+            <h2 class="mehr-title">Aktionen</h2>
+
+            <button
+              class="btn-mehr"
+              :disabled="pendingThrow || !canUndo()"
+              @click="undoLastThrow"
+            >
+              Letzten Wurf rueckgaengig machen
+            </button>
+
+            <div v-if="!showConfirmEnd">
+              <button class="btn-mehr btn-mehr-danger" @click="confirmEnd">Spiel beenden</button>
+            </div>
+            <div v-else class="confirm-end">
+              <p>Spiel wirklich beenden?</p>
+              <div class="confirm-buttons">
+                <button class="btn-confirm-yes" @click="doEnd">Ja, beenden</button>
+                <button class="btn-confirm-no" @click="showConfirmEnd = false">Abbrechen</button>
+              </div>
+            </div>
           </div>
         </template>
       </div>
@@ -174,6 +220,14 @@ function copyAdminLink() {
         >
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span>Teilen</span>
+        </button>
+        <button
+          class="nav-tab"
+          :class="{ active: activeTab === 'mehr' }"
+          @click="activeTab = 'mehr'"
+        >
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          <span>Mehr</span>
         </button>
       </nav>
     </template>
@@ -284,6 +338,96 @@ function copyAdminLink() {
   border-radius: var(--radius);
   font-weight: 600;
   margin-top: 0.5rem;
+}
+
+/* Throw buttons (Spiel tab) */
+.throw-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.btn-throw {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.9rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.btn-throw:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn-throw:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mehr tab */
+.mehr-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.mehr-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.btn-mehr {
+  background: var(--color-surface-light);
+  color: var(--color-text-muted);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  width: 100%;
+  text-align: center;
+}
+
+.btn-mehr:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-mehr-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.confirm-end {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+}
+
+.confirm-end p {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-confirm-yes {
+  flex: 1;
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-confirm-no {
+  flex: 1;
+  background: var(--color-surface-light);
+  color: var(--color-text);
 }
 
 /* Share tab */

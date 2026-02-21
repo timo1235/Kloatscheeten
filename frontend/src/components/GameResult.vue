@@ -10,21 +10,25 @@ defineProps<{
   <div class="result">
     <h2 class="result-title">Spiel beendet!</h2>
 
-    <div class="winner" v-if="gameState.winner">
+    <div
+      class="winner"
+      v-if="gameState.winner"
+      :style="{ color: gameState.winner === 'a' ? gameState.teamA.color : gameState.teamB.color }"
+    >
       {{ gameState.winner === 'a' ? gameState.teamA.name : gameState.teamB.name }} gewinnt!
     </div>
     <div class="winner draw" v-else>Unentschieden!</div>
 
     <div class="scores">
       <div class="score-row">
-        <span class="team-name" :class="{ winning: gameState.winner === 'a' }">
+        <span class="team-name" :style="gameState.winner === 'a' ? { color: gameState.teamA.color, fontWeight: 700 } : {}">
           {{ gameState.teamA.name }}
         </span>
         <span class="score">{{ gameState.teamA.throws }}</span>
       </div>
       <div class="vs">vs</div>
       <div class="score-row">
-        <span class="team-name" :class="{ winning: gameState.winner === 'b' }">
+        <span class="team-name" :style="gameState.winner === 'b' ? { color: gameState.teamB.color, fontWeight: 700 } : {}">
           {{ gameState.teamB.name }}
         </span>
         <span class="score">{{ gameState.teamB.throws }}</span>
@@ -77,11 +81,6 @@ defineProps<{
 
 .team-name {
   color: var(--color-text-muted);
-}
-
-.team-name.winning {
-  color: var(--color-primary);
-  font-weight: 700;
 }
 
 .score {

@@ -54,7 +54,7 @@ function onSetThrower(team: Team, index: number) {
         :key="idx"
         class="team-section"
       >
-        <h3 class="team-title">{{ entry.state.name }}</h3>
+        <h3 class="team-title" :style="{ color: entry.state.color }">{{ entry.state.name }}</h3>
         <ul class="manage-list">
           <li
             v-for="(player, i) in entry.state.players"
@@ -65,6 +65,7 @@ function onSetThrower(team: Team, index: number) {
             <button
               class="badge-thrower"
               :class="{ active: i === entry.state.currentThrowerIndex % entry.state.players.length }"
+              :style="i === entry.state.currentThrowerIndex % entry.state.players.length ? { background: `color-mix(in srgb, ${entry.state.color} 15%, transparent)`, color: entry.state.color } : {}"
               @click="onSetThrower(entry.team, i)"
               title="Als Werfer setzen"
             >Wirft</button>
@@ -135,7 +136,6 @@ function onSetThrower(team: Team, index: number) {
 .team-title {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--color-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -175,8 +175,7 @@ function onSetThrower(team: Team, index: number) {
 }
 
 .badge-thrower.active {
-  background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
+  /* color set via inline style */
 }
 
 .btn-icon {

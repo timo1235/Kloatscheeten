@@ -63,6 +63,11 @@ function copyViewerLink() {
   })
 }
 
+const lightColors = ['#eab308', '#e2e8f0']
+function isLightColor(color: string) {
+  return lightColors.includes(color)
+}
+
 function copyAdminLink() {
   const token = localStorage.getItem(`adminToken:${props.id}`)
   if (!token) return
@@ -117,26 +122,32 @@ function copyAdminLink() {
               label="Team A"
               teamKey="a"
               :lastThrowTeam="gameState.lastThrowTeam"
+              :color="gameState.teamA.color"
             />
             <ScoreBoard
               :team="gameState.teamB"
               label="Team B"
               teamKey="b"
               :lastThrowTeam="gameState.lastThrowTeam"
+              :color="gameState.teamB.color"
             />
           </div>
 
           <div v-if="isAdmin" class="throw-buttons">
             <button
               class="btn-throw"
+              :class="{ 'light-bg': isLightColor(gameState.teamA.color) }"
               :disabled="pendingThrow"
+              :style="{ background: gameState.teamA.color }"
               @click="throwForTeam('a')"
             >
               Wurf {{ gameState.teamA.name }}
             </button>
             <button
               class="btn-throw"
+              :class="{ 'light-bg': isLightColor(gameState.teamB.color) }"
               :disabled="pendingThrow"
+              :style="{ background: gameState.teamB.color }"
               @click="throwForTeam('b')"
             >
               Wurf {{ gameState.teamB.name }}
@@ -357,8 +368,12 @@ function copyAdminLink() {
   font-weight: 700;
 }
 
+.btn-throw.light-bg {
+  color: #1e293b;
+}
+
 .btn-throw:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  filter: brightness(0.9);
 }
 
 .btn-throw:disabled {

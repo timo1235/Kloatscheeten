@@ -8,6 +8,7 @@ const props = defineProps<{
   label: string
   teamKey: Team
   lastThrowTeam: Team | null
+  color: string
 }>()
 
 const len = computed(() => props.team.players.length)
@@ -25,7 +26,7 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
 </script>
 
 <template>
-  <div class="score-card">
+  <div class="score-card" :style="{ '--team-color': color } as any">
     <div class="team-name">{{ team.name }}</div>
     <div class="throws">{{ team.throws }}</div>
     <div class="throws-label">Wuerfe</div>
@@ -50,16 +51,17 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
 
 <style scoped>
 .score-card {
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--team-color) 10%, var(--color-surface));
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   text-align: center;
+  border: 1px solid color-mix(in srgb, var(--team-color) 25%, transparent);
 }
 
 .team-name {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--team-color);
   margin-bottom: 0.25rem;
 }
 
@@ -82,30 +84,30 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .player-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.3rem 0.5rem;
+  padding: 0.35rem 0.5rem;
   font-size: 0.85rem;
   color: var(--color-text-muted);
   border-radius: 6px;
-  border-left: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .player-item.is-wirft {
   color: var(--color-text);
   font-weight: 600;
-  background: rgba(99, 102, 241, 0.15);
-  border-left-color: #6366f1;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .player-item.is-danach {
   color: var(--color-text);
-  background: rgba(56, 189, 248, 0.1);
-  border-left-color: rgba(56, 189, 248, 0.4);
 }
 
 .player-name {
@@ -129,9 +131,9 @@ function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
 }
 
 .badge-wirft {
-  background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
-  border: 1px solid #6366f1;
+  background: color-mix(in srgb, var(--team-color) 15%, transparent);
+  color: var(--team-color);
+  border: 1px solid var(--team-color);
 }
 
 .badge-danach {

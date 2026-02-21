@@ -3,6 +3,7 @@ export type GameStatus = 'active' | 'ended'
 
 export interface TeamState {
   name: string
+  color: string
   throws: number
   players: readonly string[]
   currentThrowerIndex: number
@@ -24,6 +25,8 @@ export interface CreateGameRequest {
   teamBName: string
   teamAPlayers: string[]
   teamBPlayers: string[]
+  teamAColor: string
+  teamBColor: string
 }
 
 export interface CreateGameResponse {

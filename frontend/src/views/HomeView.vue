@@ -9,6 +9,9 @@ const teamAName = ref('')
 const teamBName = ref('')
 const teamAPlayers = ref(['', ''])
 const teamBPlayers = ref(['', ''])
+const teamAColor = ref('#ef4444')
+const teamBColor = ref('#3b82f6')
+const teamColors = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#e2e8f0']
 const error = ref('')
 const submitting = ref(false)
 
@@ -51,6 +54,8 @@ async function createGame() {
       teamBName: teamBName.value,
       teamAPlayers: teamAPlayers.value,
       teamBPlayers: teamBPlayers.value,
+      teamAColor: teamAColor.value,
+      teamBColor: teamBColor.value,
     }
 
     const res = await fetch('/api/games', {
@@ -137,6 +142,19 @@ async function copyLink() {
             :placeholder="`${team.label} Name (z.B. Die Kloater)`"
             maxlength="50"
           />
+
+          <div class="color-picker">
+            <span class="color-label">Farbe:</span>
+            <button
+              v-for="c in teamColors"
+              :key="c"
+              type="button"
+              class="color-dot"
+              :class="{ selected: (key === 'a' ? teamAColor : teamBColor) === c }"
+              :style="{ background: c }"
+              @click="key === 'a' ? (teamAColor = c) : (teamBColor = c)"
+            />
+          </div>
 
           <div class="players">
             <div v-for="(_, i) in team.players" :key="i" class="player-row">
@@ -233,6 +251,33 @@ async function copyLink() {
 .team-section h2 {
   font-size: 1.1rem;
   color: var(--color-primary);
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.color-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.color-dot {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+
+.color-dot.selected {
+  border-color: var(--color-text);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15), 0 0 0 2px var(--color-bg), 0 0 0 3px var(--color-text);
 }
 
 .players {

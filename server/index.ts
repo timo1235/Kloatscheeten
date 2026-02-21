@@ -41,6 +41,8 @@ app.get('/api/health', (_req, res) => {
 })
 
 // Create game
+const ALLOWED_COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#e2e8f0']
+
 app.post('/api/games', (req, res) => {
   const body = req.body as CreateGameRequest
 
@@ -58,6 +60,11 @@ app.post('/api/games', (req, res) => {
       errors.push(`Invalid player name: ${name}`)
   }
 
+  const teamAColor = body.teamAColor || '#ef4444'
+  const teamBColor = body.teamBColor || '#3b82f6'
+  if (!ALLOWED_COLORS.includes(teamAColor)) errors.push('Invalid Team A color')
+  if (!ALLOWED_COLORS.includes(teamBColor)) errors.push('Invalid Team B color')
+
   if (errors.length > 0) {
     res.status(400).json({ errors })
     return
@@ -69,7 +76,7 @@ app.post('/api/games', (req, res) => {
   const trimmedAPlayers = body.teamAPlayers.map((n: string) => n.trim())
   const trimmedBPlayers = body.teamBPlayers.map((n: string) => n.trim())
 
-  createGame(gameId, adminToken, body.teamAName.trim(), body.teamBName.trim(), trimmedAPlayers, trimmedBPlayers)
+  createGame(gameId, adminToken, body.teamAName.trim(), body.teamBName.trim(), trimmedAPlayers, trimmedBPlayers, teamAColor, teamBColor)
 
   const host = req.headers.host ?? `localhost:${PORT}`
   const protocol = req.headers['x-forwarded-proto'] ?? 'http'

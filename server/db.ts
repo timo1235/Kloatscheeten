@@ -13,6 +13,8 @@ interface GameRow {
   team_b_players: string
   team_a_current_thrower: number
   team_b_current_thrower: number
+  team_a_color: string
+  team_b_color: string
   last_throw_team: string | null
   status: string
   winner: string | null
@@ -46,6 +48,8 @@ db.exec(`
     team_b_players TEXT NOT NULL,
     team_a_current_thrower INTEGER NOT NULL DEFAULT 0,
     team_b_current_thrower INTEGER NOT NULL DEFAULT 0,
+    team_a_color TEXT NOT NULL DEFAULT '#ef4444',
+    team_b_color TEXT NOT NULL DEFAULT '#3b82f6',
     last_throw_team TEXT,
     status TEXT NOT NULL DEFAULT 'active',
     winner TEXT,
@@ -54,9 +58,19 @@ db.exec(`
   )
 `)
 
+// Migration: add color columns to existing databases
+const columns = db.prepare("PRAGMA table_info(games)").all() as { name: string }[]
+const colNames = columns.map(c => c.name)
+if (!colNames.includes('team_a_color')) {
+  db.exec(`ALTER TABLE games ADD COLUMN team_a_color TEXT NOT NULL DEFAULT '#ef4444'`)
+}
+if (!colNames.includes('team_b_color')) {
+  db.exec(`ALTER TABLE games ADD COLUMN team_b_color TEXT NOT NULL DEFAULT '#3b82f6'`)
+}
+
 const stmtInsertGame = db.prepare(`
-  INSERT INTO games (id, admin_token, team_a_name, team_b_name, team_a_players, team_b_players)
-  VALUES (?, ?, ?, ?, ?, ?)
+  INSERT INTO games (id, admin_token, team_a_name, team_b_name, team_a_players, team_b_players, team_a_color, team_b_color)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 const stmtGetGame = db.prepare<GameRow, [string]>(
@@ -115,12 +129,14 @@ function rowToGameState(row: GameRow): GameState {
     updatedAt: row.updated_at,
     teamA: {
       name: row.team_a_name,
+      color: row.team_a_color,
       throws: row.team_a_throws,
       players: JSON.parse(row.team_a_players),
       currentThrowerIndex: row.team_a_current_thrower,
     },
     teamB: {
       name: row.team_b_name,
+      color: row.team_b_color,
       throws: row.team_b_throws,
       players: JSON.parse(row.team_b_players),
       currentThrowerIndex: row.team_b_current_thrower,
@@ -134,9 +150,11 @@ export function createGame(
   teamAName: string,
   teamBName: string,
   teamAPlayers: string[],
-  teamBPlayers: string[]
+  teamBPlayers: string[],
+  teamAColor: string,
+  teamBColor: string
 ): GameState {
-  stmtInsertGame.run(id, adminToken, teamAName, teamBName, JSON.stringify(teamAPlayers), JSON.stringify(teamBPlayers))
+  stmtInsertGame.run(id, adminToken, teamAName, teamBName, JSON.stringify(teamAPlayers), JSON.stringify(teamBPlayers), teamAColor, teamBColor)
   return getGame(id)!
 }
 

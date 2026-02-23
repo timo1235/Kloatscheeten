@@ -15,12 +15,12 @@ const len = computed(() => props.team.players.length)
 const currentIdx = computed(() => props.team.currentThrowerIndex % len.value)
 const nextIdx = computed(() => (currentIdx.value + 1) % len.value)
 const lastIdx = computed(() => getLastThrowerIndex(props.team))
-const showLast = computed(() => props.lastThrowTeam === props.teamKey)
+const hasThrows = computed(() => props.team.throws > 0)
 
 function badgeFor(i: number): 'wirft' | 'danach' | 'zuletzt' | null {
   if (i === currentIdx.value) return 'wirft'
+  if (hasThrows.value && i === lastIdx.value) return 'zuletzt'
   if (i === nextIdx.value) return 'danach'
-  if (showLast.value && i === lastIdx.value) return 'zuletzt'
   return null
 }
 </script>

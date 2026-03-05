@@ -6,9 +6,6 @@ services:
     ports:
       - "12000:12000"
     volumes:
-      - data:/app/data
+      - ./data:/app/data
     environment:
       - PORT=12000
-
-volumes:
-  data:
